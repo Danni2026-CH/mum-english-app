@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>妈妈学英语 — Mum's English</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --ink-soft: #555;
+    --ink-faint: #999;
+    --paper: #fafaf7;
+    --paper-card: #ffffff;
+    --sage: #4a7c6f;
+    --sage-light: #e8f2ef;
+    --sage-mid: #b8d8d0;
+    --sage-dark: #2d5a50;
+    --gold: #c9972a;
+    --gold-light: #fdf3e0;
+    --border: #e8e8e2;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--sage-dark);
+    padding: 20px 24px 16px;
+    text-align: center;
+  }
+  .app-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+  .app-header p {
+    font-size: 15px;
+    color: var(--sage-mid);
+    margin-top: 4px;
+  }
+
+  /* ── Lesson nav ── */
+  .lesson-nav {
+    display: flex;
+    gap: 8px;
+    padding: 16px 16px 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .lesson-nav::-webkit-scrollbar { display: none; }
+
+  .lesson-tab {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--paper-card);
+    font-size: 14px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .lesson-tab.active {
+    background: var(--sage-dark);
+    border-color: var(--sage-dark);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  /* ── Lesson container ── */
+  .lesson-section { display: none; padding: 16px; }
+  .lesson-section.active { display: block; }
+
+  .lesson-intro {
+    text-align: center;
+    padding: 12px 8px 20px;
+  }
+  .lesson-intro h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .lesson-intro p {
+    font-size: 14px;
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+
+  /* ── Progress dots ── */
+  .progress-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .pdot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .pdot.done { background: var(--sage); }
+
+  /* ── Phrase card ── */
+  .phrase-card {
+    background: var(--paper-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 16px;
+    overflow: hidden;
+    border: 1.5px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .phrase-card.listening { border-color: var(--sage); }
+
+  .card-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    background: var(--sage-light);
+  }
+  .card-img-placeholder {
+    width: 100%;
+    height: 180px;
+    background: var(--sage-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--ink-faint);
+    gap: 6px;
+  }
+  .img-credit-bar {
+    background: rgba(0,0,0,0.45);
+    padding: 3px 10px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.8);
+    text-align: right;
+    margin-top: -20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-body { padding: 16px 18px 14px; }
+
+  .phrase-en {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .phrase-zh {
+    font-size: 20px;
+    color: var(--ink-soft);
+    margin-bottom: 3px;
+  }
+  .phrase-py {
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+
+  /* ── Buttons ── */
+  .btn-listen {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 15px;
+    padding: 9px 18px;
+    border-radius: 24px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-listen:hover { background: var(--sage-light); border-color: var(--sage-mid); }
+  .btn-listen.playing { background: var(--sage-light); border-color: var(--sage); color: var(--sage-dark); }
+
+  /* ── Reward zone ── */
+  .reward-zone { display: none; margin-top: 14px; }
+  .reward-zone.show { display: block; }
+
+  .say-prompt {
+    background: var(--sage-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--sage-dark);
+    margin-bottom: 12px;
+  }
+
+  .btn-phonetic {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--sage-mid);
+    background: #fff;
+    color: var(--sage-dark);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-phonetic:hover { background: var(--sage-light); }
+  .btn-phonetic:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .phonetic-box {
+    display: none;
+    margin-top: 12px;
+    background: var(--gold-light);
+    border: 1.5px solid #f0d9a0;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+  }
+  .phonetic-box.show { display: block; }
+
+  .phonetic-label {
+    font-size: 11px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .phonetic-chars {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .phonetic-tip {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .phonetic-edit-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    align-items: center;
+  }
+  .phonetic-input {
+    font-size: 20px;
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid #f0d9a0;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    display: none;
+  }
+  .phonetic-input.show { display: block; }
+
+  .btn-mini {
+    font-size: 12px;
+    padding: 5px 11px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn-mini-sage {
+    font-size: 12px;
+    padding: 5px 11px;
+    border-radius: 14px;
+    border: 1.5px solid var(--sage);
+    background: #fff;
+    color: var(--sage-dark);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    display: none;
+  }
+
+  /* ── Notes ── */
+  .notes-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0 10px;
+  }
+  .notes-label-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .notes-text {
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-style: italic;
+    min-height: 20px;
+  }
+  .notes-text.empty { color: var(--ink-faint); font-style: normal; }
+  .notes-btn-row { display: flex; gap: 6px; margin-top: 6px; }
+  .notes-edit-row {
+    display: none;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+  }
+  .notes-edit-row.show { display: flex; }
+  .notes-input {
+    font-size: 14px;
+    flex: 1;
+    padding: 7px 11px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .notes-input::placeholder { color: var(--ink-faint); }
+
+  /* ── Footer ── */
+  .app-footer {
+    text-align: center;
+    padding: 24px 16px 40px;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>妈妈学英语</h1>
+  <p>Mum's English — one lesson at a time</p>
+</header>
+
+<nav class="lesson-nav" id="lessonNav"></nav>
+
+<main id="lessonMain"></main>
+
+<footer class="app-footer">Made with love by Danni 💚</footer>
+
+<script>
+const UNSPLASH_KEY = 'LizoW7B3kAglnbUOYdVoD_p6j87rehgtsTL0l8uowyM';
+const _k1 = 'sk-ant-api03-RJRTdS3mmJ80bPkKcCwabZbT6b7CTZm_EFHrxG120';
+const _k2 = '2FR-ZeQ2y2kyIUtNY-0Bd9dr_4gyeBwce-539s9zmk2AA-2aOxSwAA';
+let ANTHROPIC_KEY = localStorage.getItem('mumapp_anthropic_key') || (_k1 + _k2);
+
+function checkApiKey() {
+  return !!ANTHROPIC_KEY;
+}
+
+function showKeyModal() {
+  document.getElementById('key-modal').style.display = 'flex';
+  document.getElementById('key-input').focus();
+}
+
+function saveKeyFromModal() {
+  const val = document.getElementById('key-input').value.trim();
+  if (val.length > 20) {
+    ANTHROPIC_KEY = val;
+    localStorage.setItem('mumapp_anthropic_key', val);
+    document.getElementById('key-modal').style.display = 'none';
+    document.getElementById('key-input').value = '';
+  }
+}
+
+const lessons = [
+  {
+    id: 'greetings',
+    title: 'Greetings',
+    zh: '问候',
+    phrases: [
+      { en: "Hello!", zh: "你好！", py: "Nǐ hǎo", ctx: "Saying hello to anyone", img: null },
+      { en: "Good morning!", zh: "早上好！", py: "Zǎoshang hǎo", ctx: "Before midday", img: null },
+      { en: "Good afternoon!", zh: "下午好！", py: "Xiàwǔ hǎo", ctx: "After lunch", img: null },
+      { en: "How are you?", zh: "你好吗？", py: "Nǐ hǎo ma", ctx: "Asking how someone is", img: null },
+      { en: "I'm well, thanks!", zh: "我很好，谢谢！", py: "Wǒ hěn hǎo, xièxiè", ctx: "Replying when you're good", img: null },
+      { en: "Nice to meet you!", zh: "很高兴认识你！", py: "Hěn gāoxìng rènshi nǐ", ctx: "Meeting someone new", img: null },
+      { en: "Goodbye!", zh: "再见！", py: "Zàijiàn", ctx: "Saying goodbye", img: null },
+      { en: "See you later!", zh: "待会见！", py: "Dāihuì jiàn", ctx: "Casual goodbye", img: null },
+      { en: "Have a good day!", zh: "祝你一天愉快！", py: "Zhù nǐ yītiān yúkuài", ctx: "Wishing someone well", img: null },
+    ]
+  },
+  {
+    id: 'cafe',
+    title: 'At the café',
+    zh: '在咖啡馆',
+    phrases: [
+      { en: "A cup of tea, please.", zh: "请给我一杯茶。", py: "Qǐng gěi wǒ yī bēi chá", ctx: "Ordering tea politely", img: "cup of tea" },
+      { en: "A coffee, please.", zh: "请给我一杯咖啡。", py: "Qǐng gěi wǒ yī bēi kāfēi", ctx: "Ordering coffee", img: "coffee cup latte" },
+      { en: "A glass of water, please.", zh: "请给我一杯水。", py: "Qǐng gěi wǒ yī bēi shuǐ", ctx: "Ordering water", img: "glass of water" },
+      { en: "A slice of cake, please.", zh: "请给我一块蛋糕。", py: "Qǐng gěi wǒ yī kuài dàngāo", ctx: "Ordering cake", img: "slice of cake" },
+      { en: "How much is it?", zh: "多少钱？", py: "Duōshǎo qián", ctx: "Asking the price", img: null },
+      { en: "Thank you very much!", zh: "非常感谢！", py: "Fēicháng gǎnxiè", ctx: "Polite thank you", img: null },
+    ]
+  },
+  {
+    id: 'supermarket',
+    title: 'Supermarket',
+    zh: '超市购物',
+    phrases: [
+      { en: "Where are the vegetables?", zh: "蔬菜在哪里？", py: "Shūcài zài nǎlǐ", ctx: "Finding vegetables", img: "vegetables market" },
+      { en: "How much is this?", zh: "这个多少钱？", py: "Zhège duōshǎo qián", ctx: "Asking a price", img: null },
+      { en: "A bag of rice, please.", zh: "请给我一袋米。", py: "Qǐng gěi wǒ yī dài mǐ", ctx: "Buying rice", img: "bag of rice" },
+      { en: "Some apples, please.", zh: "请给我一些苹果。", py: "Qǐng gěi wǒ yīxiē píngguǒ", ctx: "Buying apples", img: "fresh apples" },
+      { en: "Do you have tofu?", zh: "你们有豆腐吗？", py: "Nǐmen yǒu dòufu ma", ctx: "Asking for tofu", img: "tofu" },
+      { en: "Can I pay by card?", zh: "我可以刷卡吗？", py: "Wǒ kěyǐ shuā kǎ ma", ctx: "Asking about payment", img: null },
+      { en: "A plastic bag, please.", zh: "请给我一个塑料袋。", py: "Qǐng gěi wǒ yīgè sùliào dài", ctx: "Asking for a bag", img: null },
+    ]
+  },
+  {
+    id: 'fruitveg',
+    title: 'Fruit & Veg',
+    zh: '蔬菜水果',
+    phrases: [
+      { en: "Apple", zh: "苹果", py: "Píngguǒ", ctx: "A popular everyday fruit", img: "red apple fruit" },
+      { en: "Banana", zh: "香蕉", py: "Xiāngjiāo", ctx: "Yellow tropical fruit", img: "banana fruit" },
+      { en: "Orange", zh: "橙子", py: "Chéngzi", ctx: "Citrus fruit", img: "orange fruit" },
+      { en: "Strawberry", zh: "草莓", py: "Cǎoméi", ctx: "Small red berry", img: "strawberry fruit" },
+      { en: "Avocado", zh: "牛油果", py: "Niúyóuguǒ", ctx: "Green creamy fruit", img: "avocado" },
+      { en: "Broccoli", zh: "西兰花", py: "Xīlánhuā", ctx: "Dark green vegetable", img: "broccoli vegetable" },
+      { en: "Cauliflower", zh: "花椰菜", py: "Huā yē cài", ctx: "White vegetable", img: "cauliflower vegetable" },
+      { en: "Pumpkin", zh: "南瓜", py: "Nánguā", ctx: "Orange winter vegetable", img: "pumpkin vegetable" },
+      { en: "Spinach", zh: "菠菜", py: "Bōcài", ctx: "Dark leafy green", img: "spinach leaves" },
+      { en: "Mushroom", zh: "蘑菇", py: "Mógu", ctx: "Earthy fungi", img: "mushroom" },
+    ]
+  },
+  {
+    id: 'slang',
+    title: 'Aussie slang',
+    zh: '澳洲俚语',
+    phrases: [
+      { en: "G'day!", zh: "你好！（澳式）", py: "Gday", ctx: "Australian greeting", img: null },
+      { en: "No worries!", zh: "没问题！", py: "Nóu wùlǐsī", ctx: "Everything is fine", img: null },
+      { en: "Good on ya!", zh: "做得好！", py: "Gùd ón yā", ctx: "Well done!", img: null },
+      { en: "Arvo", zh: "下午", py: "Āwò", ctx: "Short for afternoon", img: null },
+      { en: "Brekkie", zh: "早餐", py: "Bùlèijī", ctx: "Short for breakfast", img: "breakfast" },
+      { en: "Barbie", zh: "烧烤", py: "Bābǐ", ctx: "Barbecue grill", img: "barbecue grill" },
+      { en: "She'll be right!", zh: "会没事的！", py: "Xīlǎo bì rài", ctx: "It'll be fine", img: null },
+    ]
+  }
+];
+
+const phoneticsCache = {};
+const notesStore = JSON.parse(localStorage.getItem('mumEnglishNotes') || '{}');
+
+function saveNotes() {
+  localStorage.setItem('mumEnglishNotes', JSON.stringify(notesStore));
+}
+
+function buildApp() {
+  const nav = document.getElementById('lessonNav');
+  const main = document.getElementById('lessonMain');
+
+  lessons.forEach((lesson, li) => {
+    const tab = document.createElement('button');
+    tab.className = 'lesson-tab' + (li === 0 ? ' active' : '');
+    tab.textContent = lesson.title + ' ' + lesson.zh;
+    tab.onclick = () => switchLesson(li);
+    nav.appendChild(tab);
+
+    const section = document.createElement('section');
+    section.className = 'lesson-section' + (li === 0 ? ' active' : '');
+    section.id = 'lesson-' + li;
+
+    const progressRow = document.createElement('div');
+    progressRow.className = 'progress-row';
+    lesson.phrases.forEach((_, pi) => {
+      const dot = document.createElement('div');
+      dot.className = 'pdot';
+      dot.id = `dot-${li}-${pi}`;
+      progressRow.appendChild(dot);
+    });
+
+    const intro = document.createElement('div');
+    intro.className = 'lesson-intro';
+    intro.innerHTML = `<h2>${lesson.title}</h2><p>${lesson.zh}</p>`;
+
+    section.appendChild(intro);
+    section.appendChild(progressRow);
+
+    lesson.phrases.forEach((phrase, pi) => {
+      const card = buildCard(li, pi, phrase);
+      section.appendChild(card);
+    });
+
+    main.appendChild(section);
+  });
+}
+
+function buildCard(li, pi, phrase) {
+  const card = document.createElement('div');
+  card.className = 'phrase-card';
+  card.id = `card-${li}-${pi}`;
+
+  const key = `${li}-${pi}`;
+
+  let imgHTML = '';
+  if (phrase.img) {
+    imgHTML = `
+      <div id="imgwrap-${li}-${pi}" style="position:relative">
+        <div class="card-img-placeholder" id="imgplaceholder-${li}-${pi}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Loading photo...
+        </div>
+      </div>`;
+  }
+
+  const savedNote = notesStore[key] || '';
+
+  card.innerHTML = `
+    ${imgHTML}
+    <div class="card-body">
+      <div class="phrase-en">${phrase.en}</div>
+      <div class="phrase-zh">${phrase.zh}</div>
+      <div class="phrase-py">${phrase.py} — ${phrase.ctx}</div>
+      <button class="btn-listen" id="listenbtn-${li}-${pi}" onclick="speak(${li},${pi})">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        Listen
+      </button>
+
+      <div class="reward-zone" id="reward-${li}-${pi}">
+        <div class="say-prompt">🗣 Now say it out loud: <strong>${phrase.en}</strong></div>
+
+        <button class="btn-phonetic" id="phonbtn-${li}-${pi}" onclick="getPhonetics(${li},${pi})">
+          ✨ Show phonetic Chinese
+        </button>
+
+        <div class="phonetic-box" id="phonbox-${li}-${pi}">
+          <div class="phonetic-label">Phonetic Chinese — mum's guide</div>
+          <div class="phonetic-chars" id="phonchars-${li}-${pi}"></div>
+          <div class="phonetic-tip" id="phontip-${li}-${pi}"></div>
+          <div class="phonetic-edit-row">
+            <input class="phonetic-input" id="phoninput-${li}-${pi}" type="text" />
+            <button class="btn-mini" onclick="startPhonEdit(${li},${pi})" id="phon-edit-btn-${li}-${pi}">Edit</button>
+            <button class="btn-mini-sage" onclick="savePhonEdit(${li},${pi})" id="phon-save-btn-${li}-${pi}">Save</button>
+          </div>
+        </div>
+
+        <hr class="notes-divider">
+        <div class="notes-label-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Mum's notes
+        </div>
+        <div class="notes-text ${savedNote ? '' : 'empty'}" id="notestext-${li}-${pi}">${savedNote || 'No notes yet — tap to add'}</div>
+        <div class="notes-btn-row" id="notesbtnrow-${li}-${pi}">
+          <button class="btn-mini" onclick="startNoteEdit(${li},${pi})">${savedNote ? 'Edit note' : 'Add note'}</button>
+          ${savedNote ? `<button class="btn-mini" onclick="clearNote(${li},${pi})">Clear</button>` : ''}
+        </div>
+        <div class="notes-edit-row" id="noteseditrow-${li}-${pi}">
+          <input class="notes-input" id="notesinput-${li}-${pi}" type="text" value="${savedNote.replace(/"/g,'&quot;')}" placeholder="e.g. Mum prefers this version, needs more practice…" />
+          <button class="btn-mini-sage" style="display:inline-block" onclick="saveNote(${li},${pi})">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (phrase.img) {
+    setTimeout(() => loadImage(li, pi, phrase.img), 0);
+  }
+
+  return card;
+}
+
+function switchLesson(li) {
+  document.querySelectorAll('.lesson-tab').forEach((t, i) => t.classList.toggle('active', i === li));
+  document.querySelectorAll('.lesson-section').forEach((s, i) => s.classList.toggle('active', i === li));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function loadImage(li, pi, query) {
+  try {
+    const res = await fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${UNSPLASH_KEY}`);
+    const data = await res.json();
+    if (!data || !data.urls) return;
+    const wrap = document.getElementById(`imgwrap-${li}-${pi}`);
+    const placeholder = document.getElementById(`imgplaceholder-${li}-${pi}`);
+    if (!wrap) return;
+    const img = document.createElement('img');
+    img.className = 'card-img';
+    img.src = data.urls.small;
+    img.alt = query;
+    img.onload = () => { if (placeholder) placeholder.remove(); };
+    wrap.insertBefore(img, wrap.firstChild);
+    const credit = document.createElement('div');
+    credit.className = 'img-credit-bar';
+    credit.textContent = `Photo: ${data.user.name} / Unsplash`;
+    wrap.appendChild(credit);
+  } catch (e) {
+    const placeholder = document.getElementById(`imgplaceholder-${li}-${pi}`);
+    if (placeholder) placeholder.textContent = '';
+  }
+}
+
+let currentUtterance = null;
+
+function speak(li, pi) {
+  if (currentUtterance) window.speechSynthesis.cancel();
+  const phrase = lessons[li].phrases[pi];
+  const btn = document.getElementById(`listenbtn-${li}-${pi}`);
+  const card = document.getElementById(`card-${li}-${pi}`);
+  btn.classList.add('playing');
+  card.classList.add('listening');
+
+  const u = new SpeechSynthesisUtterance(phrase.en);
+  u.lang = 'en-AU';
+  u.rate = 0.85;
+  const voices = window.speechSynthesis.getVoices();
+  const auVoice = voices.find(v => v.lang === 'en-AU') || voices.find(v => v.lang.startsWith('en'));
+  if (auVoice) u.voice = auVoice;
+
+  u.onend = () => {
+    btn.classList.remove('playing');
+    card.classList.remove('listening');
+    document.getElementById(`dot-${li}-${pi}`).classList.add('done');
+    document.getElementById(`reward-${li}-${pi}`).classList.add('show');
+  };
+  currentUtterance = u;
+  window.speechSynthesis.speak(u);
+}
+
+async function getPhonetics(li, pi) {
+  const key = `${li}-${pi}`;
+  const btn = document.getElementById(`phonbtn-${li}-${pi}`);
+  const box = document.getElementById(`phonbox-${li}-${pi}`);
+  const charsEl = document.getElementById(`phonchars-${li}-${pi}`);
+  const tipEl = document.getElementById(`phontip-${li}-${pi}`);
+
+  if (phoneticsCache[key]) {
+    charsEl.textContent = phoneticsCache[key].chars;
+    tipEl.textContent = phoneticsCache[key].note;
+    box.classList.add('show');
+    btn.style.display = 'none';
+    return;
+  }
+
+  if (!ANTHROPIC_KEY) {
+    showKeyModal();
+    document.getElementById('key-modal').dataset.pendingLi = li;
+    document.getElementById('key-modal').dataset.pendingPi = pi;
+    btn.disabled = false;
+    return;
+  }
+
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+
+  try {
+    const phrase = lessons[li].phrases[pi].en;
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 200,
+        messages: [{ role: 'user', content: `You are helping an 84-year-old Mandarin Chinese speaker learn to pronounce English phrases. Create a phonetic transliteration of the English phrase into Chinese characters based purely on sound — not meaning. The characters should approximate how the English sounds to a Mandarin speaker.\n\nEnglish phrase: "${phrase}"\n\nRespond ONLY with a valid JSON object, no markdown:\n{"chars": "Chinese characters here", "note": "one short pronunciation tip in English, under 10 words"}` }]
+      })
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('API error status:', res.status, errText);
+      throw new Error(`API ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    console.log('API response:', JSON.stringify(data));
+    const raw = data.content.map(b => b.text || '').join('');
+    window._lastRaw = raw;
+    console.log('Raw text:', raw);
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON in response: ' + cleaned);
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!parsed.chars) throw new Error('Missing chars field');
+    phoneticsCache[key] = parsed;
+    charsEl.textContent = parsed.chars;
+    tipEl.textContent = parsed.note || '';
+    box.classList.add('show');
+    btn.style.display = 'none';
+  } catch (e) {
+    console.error('Phonetics error:', e);
+    btn.textContent = '↺ Try again';
+    btn.disabled = false;
+    const box = document.getElementById(`phonbox-${li}-${pi}`);
+    box.classList.add('show');
+    box.style.background = '#fff0f0';
+    box.style.borderColor = '#f0a0a0';
+    document.getElementById(`phonchars-${li}-${pi}`).textContent = 'Error: ' + e.message;
+    document.getElementById(`phontip-${li}-${pi}`).textContent = 'Raw: ' + (window._lastRaw || 'none');
+  }
+}
+
+function startPhonEdit(li, pi) {
+  const key = `${li}-${pi}`;
+  const charsEl = document.getElementById(`phonchars-${li}-${pi}`);
+  const input = document.getElementById(`phoninput-${li}-${pi}`);
+  const editBtn = document.getElementById(`phon-edit-btn-${li}-${pi}`);
+  const saveBtn = document.getElementById(`phon-save-btn-${li}-${pi}`);
+  input.value = charsEl.textContent;
+  input.classList.add('show');
+  saveBtn.style.display = 'inline-block';
+  editBtn.style.display = 'none';
+  charsEl.style.opacity = '0.35';
+}
+
+function savePhonEdit(li, pi) {
+  const key = `${li}-${pi}`;
+  const charsEl = document.getElementById(`phonchars-${li}-${pi}`);
+  const input = document.getElementById(`phoninput-${li}-${pi}`);
+  const editBtn = document.getElementById(`phon-edit-btn-${li}-${pi}`);
+  const saveBtn = document.getElementById(`phon-save-btn-${li}-${pi}`);
+  const val = input.value.trim();
+  if (val) { charsEl.textContent = val; if (phoneticsCache[key]) phoneticsCache[key].chars = val; }
+  input.classList.remove('show');
+  saveBtn.style.display = 'none';
+  editBtn.style.display = 'inline-block';
+  charsEl.style.opacity = '1';
+}
+
+function startNoteEdit(li, pi) {
+  document.getElementById(`noteseditrow-${li}-${pi}`).classList.add('show');
+  document.getElementById(`notesbtnrow-${li}-${pi}`).style.display = 'none';
+}
+
+function saveNote(li, pi) {
+  const key = `${li}-${pi}`;
+  const val = document.getElementById(`notesinput-${li}-${pi}`).value.trim();
+  notesStore[key] = val;
+  saveNotes();
+  const textEl = document.getElementById(`notestext-${li}-${pi}`);
+  const btnRow = document.getElementById(`notesbtnrow-${li}-${pi}`);
+  if (val) {
+    textEl.textContent = val;
+    textEl.classList.remove('empty');
+    btnRow.innerHTML = `<button class="btn-mini" onclick="startNoteEdit(${li},${pi})">Edit note</button><button class="btn-mini" onclick="clearNote(${li},${pi})">Clear</button>`;
+  } else {
+    textEl.textContent = 'No notes yet — tap to add';
+    textEl.classList.add('empty');
+    btnRow.innerHTML = `<button class="btn-mini" onclick="startNoteEdit(${li},${pi})">Add note</button>`;
+  }
+  document.getElementById(`noteseditrow-${li}-${pi}`).classList.remove('show');
+  btnRow.style.display = 'flex';
+}
+
+function clearNote(li, pi) {
+  const key = `${li}-${pi}`;
+  notesStore[key] = '';
+  saveNotes();
+  const textEl = document.getElementById(`notestext-${li}-${pi}`);
+  const btnRow = document.getElementById(`notesbtnrow-${li}-${pi}`);
+  textEl.textContent = 'No notes yet — tap to add';
+  textEl.classList.add('empty');
+  btnRow.innerHTML = `<button class="btn-mini" onclick="startNoteEdit(${li},${pi})">Add note</button>`;
+}
+
+buildApp();
+</script>
+
+<div id="key-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+  <div style="background:#fff; border-radius:16px; padding:24px; width:100%; max-width:400px;">
+    <h2 style="font-size:18px; font-weight:600; margin-bottom:8px; color:#1a1a1a;">Enter your API key</h2>
+    <p style="font-size:14px; color:#555; margin-bottom:16px;">Your Anthropic API key is needed to generate phonetic Chinese. It's saved only on this device.</p>
+    <input id="key-input" type="password" placeholder="Paste your API key here..." style="width:100%; font-size:14px; padding:10px 12px; border:1.5px solid #e8e8e2; border-radius:8px; margin-bottom:12px; box-sizing:border-box; font-family:inherit;" />
+    <div style="display:flex; gap:10px;">
+      <button onclick="saveKeyFromModal()" style="flex:1; padding:10px; background:#2d5a50; color:#fff; border:none; border-radius:24px; font-size:15px; font-family:inherit; cursor:pointer;">Save & continue</button>
+      <button onclick="document.getElementById('key-modal').style.display='none'" style="padding:10px 16px; background:transparent; border:1.5px solid #e8e8e2; border-radius:24px; font-size:15px; font-family:inherit; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
