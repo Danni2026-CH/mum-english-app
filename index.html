@@ -364,7 +364,7 @@
 <footer class="app-footer">Made with love by Danni 💚</footer>
 
 <script>
-const UNSPLASH_KEY = 'LizoW7B3kAglnbUOYdVoD_p6j87rehgtsTL0l8uowyM';
+const PEXELS_KEY = 'vPPtMkBpBjDnNFQHNgQhmKHBJFhBWtimMjKRqWAkzqyGwonVGqiXBmJL';
 const _k1 = 'sk-ant-api03-RJRTdS3mmJ80bPkKcCwabZbT6b7CTZm_EFHrxG120';
 const _k2 = '2FR-ZeQ2y2kyIUtNY-0Bd9dr_4gyeBwce-539s9zmk2AA-2aOxSwAA';
 let ANTHROPIC_KEY = localStorage.getItem('mumapp_anthropic_key') || (_k1 + _k2);
@@ -600,12 +600,14 @@ function switchLesson(li) {
 
 async function loadImage(li, pi, query) {
   try {
-    const res = await fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${UNSPLASH_KEY}`);
+    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`, {
+      headers: { 'Authorization': PEXELS_KEY }
+    });
     const data = await res.json();
-    console.log('Unsplash response for', query, ':', JSON.stringify(data).substring(0, 200));
-    if (!data || !data.urls) {
+    console.log('Pexels response for', query, ':', JSON.stringify(data).substring(0, 200));
+    if (!data || !data.photos || data.photos.length === 0) {
       const placeholder = document.getElementById(`imgplaceholder-${li}-${pi}`);
-      if (placeholder) placeholder.innerHTML = `<span style="font-size:11px;color:#999;padding:8px;">📷 ${query}<br><span style="font-size:10px">${JSON.stringify(data).substring(0,80)}</span></span>`;
+      if (placeholder) placeholder.innerHTML = `<span style="font-size:11px;color:#999;padding:8px;">📷 ${query}</span>`;
       return;
     }
     const wrap = document.getElementById(`imgwrap-${li}-${pi}`);
@@ -613,13 +615,13 @@ async function loadImage(li, pi, query) {
     if (!wrap) return;
     const img = document.createElement('img');
     img.className = 'card-img';
-    img.src = data.urls.small;
+    img.src = data.photos[0].src.medium;
     img.alt = query;
     img.onload = () => { if (placeholder) placeholder.remove(); };
     wrap.insertBefore(img, wrap.firstChild);
     const credit = document.createElement('div');
     credit.className = 'img-credit-bar';
-    credit.textContent = `Photo: ${data.user.name} / Unsplash`;
+    credit.textContent = `Photo: ${data.photos[0].photographer} / Pexels`;
     wrap.appendChild(credit);
   } catch (e) {
     const placeholder = document.getElementById(`imgplaceholder-${li}-${pi}`);
