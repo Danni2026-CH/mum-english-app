@@ -602,7 +602,12 @@ async function loadImage(li, pi, query) {
   try {
     const res = await fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${UNSPLASH_KEY}`);
     const data = await res.json();
-    if (!data || !data.urls) return;
+    console.log('Unsplash response for', query, ':', JSON.stringify(data).substring(0, 200));
+    if (!data || !data.urls) {
+      const placeholder = document.getElementById(`imgplaceholder-${li}-${pi}`);
+      if (placeholder) placeholder.innerHTML = `<span style="font-size:11px;color:#999;padding:8px;">📷 ${query}<br><span style="font-size:10px">${JSON.stringify(data).substring(0,80)}</span></span>`;
+      return;
+    }
     const wrap = document.getElementById(`imgwrap-${li}-${pi}`);
     const placeholder = document.getElementById(`imgplaceholder-${li}-${pi}`);
     if (!wrap) return;
