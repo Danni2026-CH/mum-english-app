@@ -354,6 +354,7 @@
 <header class="app-header">
   <h1>妈妈学英语</h1>
   <p>Mum's English — one lesson at a time</p>
+  <button onclick="resetApiKey()" style="margin-top:10px; font-size:12px; padding:5px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.3); background:transparent; color:rgba(255,255,255,0.7); cursor:pointer;">⚙️ Set API key</button>
 </header>
 
 <nav class="lesson-nav" id="lessonNav"></nav>
@@ -367,6 +368,12 @@ const UNSPLASH_KEY = 'LizoW7B3kAglnbUOYdVoD_p6j87rehgtsTL0l8uowyM';
 const _k1 = 'sk-ant-api03-RJRTdS3mmJ80bPkKcCwabZbT6b7CTZm_EFHrxG120';
 const _k2 = '2FR-ZeQ2y2kyIUtNY-0Bd9dr_4gyeBwce-539s9zmk2AA-2aOxSwAA';
 let ANTHROPIC_KEY = localStorage.getItem('mumapp_anthropic_key') || (_k1 + _k2);
+
+function resetApiKey() {
+  localStorage.removeItem('mumapp_anthropic_key');
+  ANTHROPIC_KEY = _k1 + _k2;
+  showKeyModal();
+}
 
 function checkApiKey() {
   return !!ANTHROPIC_KEY;
